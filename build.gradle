@@ -1,4 +1,33 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+ext {
+
+    // androidx
+    appcompat = "1.1.0"
+    constraintlayout = "1.1.3"
+
+    // Kotlin
+    ktx = "1.2.0"
+
+    //retrofit
+    retrofit = "2.6.1"
+    gsonConverter = "2.3.0"
+    loggingInterceptor = "3.12.6"
+    mockwebserver = "3.12.6"
+
+    // rx
+    rxJava = "2.0.5"
+    rxAndroid = "2.0.2"
+    rxjavaretrofit = "2.3.0"
+    rxJavaRoom = "1.1.1"
+
+    // dagger
+    dagger = "2.23.2"
+
+    // test
+    junit = "4.12"
+    androidxJunit = "1.1.1"
+    espresso = "3.2.0"
+}
 
 buildscript {
     ext.kotlin_version = '1.3.61'
@@ -8,7 +37,7 @@ buildscript {
         
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.0'
+        classpath 'com.android.tools.build:gradle:3.6.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
