@@ -1,0 +1,2 @@
+rootProject.name='Restuarant-Search'
+include ':app'
