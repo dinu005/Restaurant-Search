@@ -9,7 +9,7 @@ import com.sample.restuarant.search.di.DaggerTestApplicationComponent
 import com.sample.restuarant.search.di.MockNetworkModule
 import com.sample.restuarant.search.di.TestApplicationComponent
 import com.sample.restuarant.search.mock.MockApiResponse
-import io.reactivex.Completable
+import com.sample.restuarant.search.model.RestaurantModel
 import io.reactivex.observers.TestObserver
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -61,7 +61,7 @@ class RestaurantServiceImplTest {
 
         mockWebServer.enqueue(mockServerResponse)
 
-        val testObserver = TestObserver.create<Completable>()
+        val testObserver = TestObserver.create<List<RestaurantModel>>()
         restaurantService.getNearByRestaurants()
             .subscribe(testObserver)
 
@@ -83,6 +83,9 @@ class RestaurantServiceImplTest {
         )
         testObserver.assertNoErrors()
             .assertComplete()
+
+        val values = testObserver.values().get(0)
+        assertEquals(1, values.size)
     }
 
     @Test
@@ -92,12 +95,16 @@ class RestaurantServiceImplTest {
 
         mockWebServer.enqueue(mockServerResponse)
 
-        val testObserver = TestObserver.create<Completable>()
+        val testObserver = TestObserver.create<List<RestaurantModel>>()
         restaurantService.getNearByRestaurants()
             .subscribe(testObserver)
 
         testObserver.assertNoErrors()
             .assertComplete()
+
+        val values = testObserver.values().get(0)
+        assertEquals(0, values.size)
+
     }
 
 }
