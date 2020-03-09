@@ -13,6 +13,4 @@ abstract class AppModule {
 
     @Binds
     abstract fun providesContext(application: Application): Context
-
-
 }
