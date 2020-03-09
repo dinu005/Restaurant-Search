@@ -1,18 +1,15 @@
 package com.sample.restuarant.search
 
-import com.sample.restuarant.search.di.DaggerApplicationComponent
+import com.sample.restuarant.search.di.DaggerTestApplicationComponent
 import dagger.android.AndroidInjector
 import dagger.android.DaggerApplication
 
 /* @author Dinesh Kumar 
-   @creation_date 3/8/2020*/
+   @creation_date 3/9/2020*/
 
-open class RestaurantApplication : DaggerApplication() {
-
-    lateinit var injector: AndroidInjector<out DaggerApplication>
-
+class TestApplication : RestaurantApplication() {
     override fun onCreate() {
-        injector = DaggerApplicationComponent.factory().create(this)
+        injector = DaggerTestApplicationComponent.builder().application(this).create()
         super.onCreate()
     }
 
