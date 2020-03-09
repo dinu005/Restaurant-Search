@@ -60,6 +60,7 @@ dependencies {
     implementation "com.squareup.retrofit2:adapter-rxjava2:$rxjavaretrofit"
 
     testImplementation "junit:junit:$junit"
+    testImplementation "org.mockito:mockito-core:$mockito"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunit"
     androidTestImplementation "androidx.test.espresso:espresso-core:$espresso"
     androidTestImplementation "org.hamcrest:hamcrest-library:$hamcrest"
