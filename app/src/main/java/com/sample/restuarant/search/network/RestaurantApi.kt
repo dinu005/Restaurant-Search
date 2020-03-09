@@ -10,7 +10,7 @@ import retrofit2.http.Query
 
 interface RestaurantApi {
 
-    @GET("v2/venues/search")
+    @GET("v2/venues/search?query=restaurant")
     fun syncNearByRestaurants(
         @Query("ll") latLong: String,
         @Query("radius") radius: Int,
