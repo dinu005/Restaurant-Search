@@ -15,7 +15,8 @@ android {
         versionName "1.0"
 
         resValue "string", "api_creds_key", project.property('client_id')
-        resValue "string", "api_creds_secret", project.properties['client_secret']
+        resValue "string", "api_creds_secret", project.property('client_secret')
+        resValue "string", "google_maps_key", project.property('google_maps_key')
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -25,10 +26,6 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-        debug {
-            applicationIdSuffix ".debug"
-            debuggable true
-        }
     }
 
 }
@@ -37,8 +34,11 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "androidx.appcompat:appcompat:$appcompat"
+    implementation "com.google.android.material:material:$material"
     implementation "androidx.constraintlayout:constraintlayout:$constraintlayout"
     implementation "androidx.core:core-ktx:$ktx"
+    implementation "com.google.android.gms:play-services-maps:$playservices"
+    implementation "com.google.android.gms:play-services-location:$playservices"
 
     // retrofit
     implementation "com.squareup.retrofit2:retrofit:$retrofit"
