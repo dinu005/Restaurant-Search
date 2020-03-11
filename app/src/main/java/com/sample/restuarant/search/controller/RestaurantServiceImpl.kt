@@ -17,9 +17,13 @@ class RestaurantServiceImpl(private val restaurantApi: RestaurantApi) : Restaura
 
     private val tag = "RestaurantServiceImpl"
 
-    override fun getNearByRestaurants(): Single<List<RestaurantModel>> {
+    override fun getNearByRestaurants(
+        latitude: Double,
+        longitude: Double,
+        radius: Int
+    ): Single<List<RestaurantModel>> {
         return restaurantApi.syncNearByRestaurants(
-            "40.74224,-73.99386", 250,
+            "$latitude,$longitude", radius,
             "browse", "20200301"
         )
             .flatMap { restaurantList -> transformResult(restaurantList.response.venue) }

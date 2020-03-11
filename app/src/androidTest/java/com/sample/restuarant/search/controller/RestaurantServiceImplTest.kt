@@ -62,7 +62,7 @@ class RestaurantServiceImplTest {
         mockWebServer.enqueue(mockServerResponse)
 
         val testObserver = TestObserver.create<List<RestaurantModel>>()
-        restaurantService.getNearByRestaurants()
+        restaurantService.getNearByRestaurants(1.0, -1.0, 20)
             .subscribe(testObserver)
 
         val mockServerRequest = mockWebServer.takeRequest()
@@ -91,12 +91,12 @@ class RestaurantServiceImplTest {
     @Test
     fun testFourSquareApiFailure() {
         val mockServerResponse = MockResponse()
-        mockServerResponse.setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
+        mockServerResponse.setResponseCode(HttpURLConnection.HTTP_INTERNAL_ERROR)
 
         mockWebServer.enqueue(mockServerResponse)
 
         val testObserver = TestObserver.create<List<RestaurantModel>>()
-        restaurantService.getNearByRestaurants()
+        restaurantService.getNearByRestaurants(1.0, -1.0, 20)
             .subscribe(testObserver)
 
         testObserver.assertNoErrors()

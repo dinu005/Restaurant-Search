@@ -11,5 +11,9 @@ interface RestaurantService {
     /**
      * Provides a list of nearby
      */
-    fun getNearByRestaurants(): Single<List<RestaurantModel>>
+    fun getNearByRestaurants(
+        latitude: Double,
+        longitude: Double,
+        radius: Int
+    ): Single<List<RestaurantModel>>
 }

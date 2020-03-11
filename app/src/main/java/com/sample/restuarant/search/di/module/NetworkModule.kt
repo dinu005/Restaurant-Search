@@ -3,6 +3,7 @@ package com.sample.restuarant.search.di.module
 import android.content.Context
 import com.sample.restuarant.search.controller.RestaurantService
 import com.sample.restuarant.search.controller.RestaurantServiceImpl
+import com.sample.restuarant.search.di.scope.ApplicationScope
 import com.sample.restuarant.search.network.CredentialsInterceptor
 import com.sample.restuarant.search.network.ErrorInterceptor
 import com.sample.restuarant.search.network.RestaurantApi
@@ -60,6 +61,7 @@ open class NetworkModule {
     }
 
     @Provides
+    @ApplicationScope
     fun providesRestaurantService(restaurantApi: RestaurantApi): RestaurantService {
         return RestaurantServiceImpl(restaurantApi)
     }
