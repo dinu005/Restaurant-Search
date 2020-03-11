@@ -1,9 +1,8 @@
 package com.sample.restuarant.search.di
 
 import android.app.Application
-import com.sample.restuarant.search.di.module.ActivityModule
-import com.sample.restuarant.search.di.module.AppModule
-import com.sample.restuarant.search.di.module.NetworkModule
+import com.sample.restuarant.search.di.module.*
+import com.sample.restuarant.search.di.scope.ApplicationScope
 import dagger.BindsInstance
 import dagger.Component
 import dagger.android.AndroidInjectionModule
@@ -14,8 +13,10 @@ import dagger.android.DaggerApplication
    @creation_date 3/8/2020*/
 
 @Component(
-    modules = [AndroidInjectionModule::class, AppModule::class, NetworkModule::class, ActivityModule::class]
+    modules = [AndroidInjectionModule::class, AppModule::class, NetworkModule::class,
+        ActivityModule::class, ViewModelModule::class, UtilityModule::class]
 )
+@ApplicationScope
 interface ApplicationComponent : AndroidInjector<DaggerApplication> {
 
     override fun inject(instance: DaggerApplication)

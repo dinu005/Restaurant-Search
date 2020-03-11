@@ -1,6 +1,6 @@
 package com.sample.restuarant.search.di.module
 
-import com.sample.restuarant.search.MainActivity
+import com.sample.restuarant.search.view.MainActivity
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 

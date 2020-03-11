@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">Restuarant-Search</string>
+
+    <string name="permission_msg">Please enable location permission to list near by restaurants</string>
+    <string name="permission_denied_msg">Location permission is denied. Please enable to proceed further</string>
+    <string name="allow">Allow</string>
+
+    <string name="my_location">My Location</string>
+
+    <string name="max_zoom_level">You reached the max zoom level. Please view restaurants near you.</string>
+    <string name="ok">OK</string>
 </resources>
