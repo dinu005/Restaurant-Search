@@ -15,7 +15,17 @@ import java.math.RoundingMode
 
 class MapsUtility {
 
-    fun isSameGeoPosition(oldPosition: Double?, newPosition: Double): Boolean {
+    fun isUserInSameLocation(currentLocation: Location?, newLocation: Location): Boolean {
+        return (currentLocation != null && (isSameGeoPosition(
+            currentLocation.latitude,
+            newLocation.latitude
+        ) && isSameGeoPosition(
+            currentLocation.longitude,
+            newLocation.longitude
+        )))
+    }
+
+    private fun isSameGeoPosition(oldPosition: Double?, newPosition: Double): Boolean {
         return oldPosition?.toBigDecimal()?.setScale(
             3,
             RoundingMode.HALF_EVEN
@@ -26,11 +36,17 @@ class MapsUtility {
         return MarkerOptions().position(latLong).title(title)
     }
 
-    fun addRestaurantMarkerToMap(title: String, latLong: LatLng, context: Context): MarkerOptions {
+    fun addRestaurantMarkerToMap(
+        title: String,
+        category: String,
+        latLong: LatLng,
+        context: Context
+    ): MarkerOptions {
         val bitmapDrawable =
             BitmapFactory.decodeResource(context.resources, R.drawable.ic_restaurant)
         val markerOptions = MarkerOptions().position(latLong).title(title)
             .icon(BitmapDescriptorFactory.fromBitmap(bitmapDrawable))
+            .snippet(category)
         return markerOptions
     }
 

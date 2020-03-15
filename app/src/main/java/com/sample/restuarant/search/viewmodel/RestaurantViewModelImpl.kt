@@ -20,8 +20,8 @@ class RestaurantViewModelImpl(
 ) : AndroidViewModel(application), RestaurantViewModel {
 
     private val logTag = "RestaurantViewModelImpl"
-    var restaurantLiveDate: MutableLiveData<List<RestaurantModel>> = MutableLiveData()
-    var restaurantMap: MutableMap<String, RestaurantModel> = mutableMapOf()
+    private var restaurantLiveDate: MutableLiveData<List<RestaurantModel>> = MutableLiveData()
+    private var restaurantMap: MutableMap<String, RestaurantModel> = mutableMapOf()
 
     override fun getRestaurantsObservableData(): LiveData<List<RestaurantModel>> {
         return restaurantLiveDate

@@ -5,21 +5,16 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.location.Location
-import android.location.LocationManager
 import android.os.Bundle
 import android.os.IBinder
 import android.os.Message
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.Observer
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.MapStyleOptions
 import com.sample.restuarant.search.R
-import com.sample.restuarant.search.model.RestaurantModel
 import com.sample.restuarant.search.service.CurrentLocationService
 import com.sample.restuarant.search.view.GoogleMapCameraHandler.Companion.BOUNDS_KEY
 import com.sample.restuarant.search.view.GoogleMapCameraHandler.Companion.FETCH_NEW_RESTAURANTS
@@ -30,14 +25,13 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class MainActivity : RestaurantBaseActivity(), CurrentLocationService.CurrentLocationCallback {
-
-    private val tag = "MainActivity"
+class MainActivity : RestaurantBaseActivity(), CurrentLocationService.CurrentLocationCallback,
+    MapActionsCallback, View.OnClickListener {
 
     companion object {
+        const val TAG = "MainActivity"
         const val CURRENT_LOCATION_KEY = "currentLocation"
         const val CURRENT_MAX_DISTANCE = "maxDistance"
-        const val MAX_THRESHOLD = 100000F
     }
 
     @Inject
@@ -46,14 +40,14 @@ class MainActivity : RestaurantBaseActivity(), CurrentLocationService.CurrentLoc
     @Inject
     lateinit var mapsUtility: MapsUtility
 
+    @Inject
+    lateinit var mapViewController: MapViewController
+
     private lateinit var googleMapCameraHandler: GoogleMapCameraHandler
 
-    private var googleMap: GoogleMap? = null
-
-    private var currentLocation: Location? = null
-    private var maxDistance: Float = 1000.0F
-
     private var locationService: CurrentLocationService? = null
+
+    private var isDeviceRotated: Boolean = false
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -66,7 +60,7 @@ class MainActivity : RestaurantBaseActivity(), CurrentLocationService.CurrentLoc
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            Log.i(tag, "Location service is disconnected")
+            Log.i(TAG, "Location service is disconnected")
         }
     }
 
@@ -75,19 +69,21 @@ class MainActivity : RestaurantBaseActivity(), CurrentLocationService.CurrentLoc
         setContentView(R.layout.activity_main)
 
         savedInstanceState?.let {
-            currentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION_KEY)
-            maxDistance = savedInstanceState.getFloat(CURRENT_MAX_DISTANCE)
+            mapViewController.currentLocation =
+                savedInstanceState.getParcelable(CURRENT_LOCATION_KEY)
+            mapViewController.maxDistance = savedInstanceState.getFloat(CURRENT_MAX_DISTANCE)
+            isDeviceRotated = true
         }
 
-        current_location_icon.setOnClickListener {
-            moveToUsersCurrentLocation()
-        }
+        current_location_icon.setOnClickListener(this)
+
+        mapViewController.mapActionsCallback = this
 
         googleMapCameraHandler = GoogleMapCameraHandler(this)
         val restaurantListLiveData = restaurantViewModel.getRestaurantsObservableData()
         restaurantListLiveData.observe(this@MainActivity, Observer { restaurants ->
-            Log.i(tag, "restaurants ${restaurants.size}")
-            loadRestaurantsOnMap(restaurants)
+            Log.i(TAG, "restaurants ${restaurants.size}")
+            mapViewController.loadRestaurantsOnMap(restaurants)
         })
     }
 
@@ -99,8 +95,8 @@ class MainActivity : RestaurantBaseActivity(), CurrentLocationService.CurrentLoc
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putParcelable(CURRENT_LOCATION_KEY, currentLocation)
-        outState.putFloat(CURRENT_MAX_DISTANCE, maxDistance)
+        outState.putParcelable(CURRENT_LOCATION_KEY, mapViewController.currentLocation)
+        outState.putFloat(CURRENT_MAX_DISTANCE, mapViewController.maxDistance)
         super.onSaveInstanceState(outState)
     }
 
@@ -110,7 +106,7 @@ class MainActivity : RestaurantBaseActivity(), CurrentLocationService.CurrentLoc
     }
 
     override fun onLocationPermissionGranted() {
-        Log.i(tag, "onLocationPermissionGranted")
+        Log.i(TAG, "onLocationPermissionGranted")
         locationService?.let {
             it.setCurrentLocationCallback(this@MainActivity)
             it.requestLocationUpdates()
@@ -118,167 +114,107 @@ class MainActivity : RestaurantBaseActivity(), CurrentLocationService.CurrentLoc
     }
 
     override fun onLocationReceived(location: Location) {
-        Log.d(tag, "current location $location")
-
-        if (isUserInSameLocation(location) && this.googleMap != null) {
-            Log.i(tag, "You seems to be in same location ${this.currentLocation}")
+        Log.d(TAG, "current location $location")
+        val isSameLocation =
+            mapsUtility.isUserInSameLocation(mapViewController.currentLocation, location)
+        if (isSameLocation && !isDeviceRotated) {
+            Log.i(TAG, "You seems to be in same location ${mapViewController.currentLocation}")
         } else {
-            this.currentLocation = location
+            isDeviceRotated = false
+            mapViewController.currentLocation = location
             val mapsFragment =
-                supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-            mapsFragment.getMapAsync { googleMap ->
-                Log.i(tag, "updating current location")
+                supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+            Log.i(TAG, "maps fragment in activity $mapsFragment")
+            mapsFragment?.getMapAsync { googleMap ->
+                Log.i(TAG, "updating current location")
                 val latLng = LatLng(location.latitude, location.longitude)
-                disablePOIsOnMap(googleMap)
-                this.googleMap = googleMap
-                onMapsLoaded(latLng)
+                mapViewController.disablePOIsOnMap(googleMap)
+                mapViewController.googleMap = googleMap
+                mapViewController.onMapsLoaded(latLng)
+                restaurantViewModel.getRestaurantsObservableData().value.let {
+                    it?.let {
+                        mapViewController.loadRestaurantsOnMap(it)
+                    }
+                }
             }
 
-            if (!isUserInSameLocation(location)) {
+            if (!isSameLocation) {
                 requestRestaurantsWithNewRadius(location)
             }
         }
     }
 
     override fun onMapBoundsChanged(bounds: LatLngBounds?) {
-        Log.i(tag, "onMapBoundsChanged NE ${bounds?.northeast}, SW ${bounds?.southwest}")
+        Log.i(TAG, "onMapBoundsChanged NE ${bounds?.northeast}, SW ${bounds?.southwest}")
         var distance = 0.0F
         bounds?.let {
-            distance = mapsUtility.getDistanceFromLatLngAndLocation(currentLocation, it.northeast)
+            distance = mapsUtility.getDistanceFromLatLngAndLocation(
+                mapViewController.currentLocation,
+                it.northeast
+            )
                 .coerceAtLeast(
                     mapsUtility.getDistanceFromLatLngAndLocation(
-                        currentLocation,
+                        mapViewController.currentLocation,
                         it.southwest
                     )
                 )
         }
 
-        Log.i(tag, "distance between bounds $distance, and maxDistance $maxDistance")
-        if (isZoomBeyondThreshold()) {
-            freezeZoomAndShowMsg()
+        Log.i(
+            TAG,
+            "distance between bounds $distance, and maxDistance ${mapViewController.maxDistance}"
+        )
+        if (mapViewController.isZoomBeyondThreshold()) {
+            mapViewController.freezeZoomAndShowMsg()
         }
 
-        if (isUserZoomedOut(distance)) {
-            maxDistance = distance
-            currentLocation?.let {
+        if (mapViewController.isUserZoomedOut(distance)) {
+            mapViewController.maxDistance = distance
+            mapViewController.currentLocation?.let {
                 requestRestaurantsWithNewRadius(it)
             }
         } else {
-            Log.i(tag, "Probably the user might have zoomed in")
+            Log.i(TAG, "Probably the user might have zoomed in")
         }
     }
 
-    private fun isUserZoomedOut(distance: Float) = distance > maxDistance
-
-    private fun disablePOIsOnMap(googleMap: GoogleMap) {
-        googleMap.setMapStyle(
-            MapStyleOptions.loadRawResourceStyle(
-                this, R.raw.style_json
-            )
-        )
-    }
-
-    private fun isUserInSameLocation(location: Location): Boolean {
-        return (this.currentLocation != null
-                && (mapsUtility.isSameGeoPosition(this.currentLocation?.latitude, location.latitude)
-                && mapsUtility.isSameGeoPosition(
-            this.currentLocation?.longitude,
-            location.longitude
-        )))
-    }
-
-    private fun onMapsLoaded(latLng: LatLng) {
-        Log.i(tag, "loading map with current location")
-        val location = Location(LocationManager.GPS_PROVIDER)
-        location.latitude = latLng.latitude
-        location.longitude = latLng.longitude
-
-        val distanceTo = this.currentLocation?.distanceTo(location)
-        Log.i(tag, "Distance from current location $distanceTo")
-        googleMap?.let { map ->
-            val center = CameraUpdateFactory.newLatLng(latLng)
-            val zoom = CameraUpdateFactory.zoomTo(15f)
-            map.moveCamera(zoom)
-            map.animateCamera(center)
-            map.setOnCameraIdleListener {
-                val bounds = map.projection.visibleRegion.latLngBounds
-                Log.i(tag, "camera bounds ne ${bounds.northeast}, sw ${bounds.southwest}")
-                googleMapCameraHandler.removeMessages(FETCH_NEW_RESTAURANTS)
-                notifyBoundsChangedWithDelay(bounds)
-            }
-        }
-
-        restaurantViewModel.getRestaurantsObservableData().value.let {
-            it?.let {
-                loadRestaurantsOnMap(it)
-            }
-        }
-    }
-
-    private fun notifyBoundsChangedWithDelay(bounds: LatLngBounds?) {
+    override fun onMapPanned(bounds: LatLngBounds?) {
         val bundle = Bundle()
         bundle.putParcelable(BOUNDS_KEY, bounds)
         val message = Message.obtain()
         message.what = FETCH_NEW_RESTAURANTS
         message.data = bundle
 
+        googleMapCameraHandler.removeMessages(FETCH_NEW_RESTAURANTS)
         googleMapCameraHandler.sendMessageDelayed(
             message,
             TimeUnit.SECONDS.toMillis(2)
         )
     }
 
-    private fun loadRestaurantsOnMap(restaurants: List<RestaurantModel>) {
-        restaurants.forEach { restaurant ->
-            Log.i(tag, "adding markers to $googleMap for ${restaurants.size}")
-            googleMap?.let { map ->
-                val location = LatLng(
-                    restaurant.restaurantLocationModel.latitude,
-                    restaurant.restaurantLocationModel.longitude
-                )
-                map.addMarker(
-                    mapsUtility.addRestaurantMarkerToMap(
-                        restaurant.restaurantName, location, this@MainActivity
-                    )
-                ).showInfoWindow()
+    override fun showMaxPanReachedMsg() {
+        showSnackbar(
+            getString(R.string.max_zoom_level),
+            getString(R.string.ok),
+            View.OnClickListener {
+                mapViewController.moveToUsersCurrentLocation()
+            })
+    }
+
+    override fun onClick(v: View?) {
+        when (v?.id) {
+            R.id.current_location_icon -> {
+                mapViewController.moveToUsersCurrentLocation()
             }
         }
     }
-
-    private fun moveToUsersCurrentLocation() {
-        googleMap?.let { map ->
-            map.uiSettings.setAllGesturesEnabled(true)
-            currentLocation?.let {
-                val latLng = LatLng(it.latitude, it.longitude)
-                val center = CameraUpdateFactory.newLatLng(latLng)
-                val zoom = CameraUpdateFactory.zoomTo(15f)
-                map.moveCamera(zoom)
-                map.animateCamera(center)
-                if (isZoomBeyondThreshold()) {
-                    maxDistance = MAX_THRESHOLD
-                }
-            }
-        }
-    }
-
-    private fun isZoomBeyondThreshold() = maxDistance > MAX_THRESHOLD
 
     private fun requestRestaurantsWithNewRadius(it: Location): Disposable? {
         return restaurantViewModel.syncRestaurants(
             it.latitude,
             it.longitude,
-            maxDistance.toInt()
-        ).doOnSubscribe { Log.d(tag, "Subscribing for new data $maxDistance") }
+            mapViewController.maxDistance.toInt()
+        ).doOnSubscribe { Log.d(TAG, "Subscribing for new data ${mapViewController.maxDistance}") }
             .subscribe()
-    }
-
-    private fun freezeZoomAndShowMsg() {
-        googleMap?.uiSettings?.setAllGesturesEnabled(false)
-        showSnackbar(
-            getString(R.string.max_zoom_level),
-            getString(R.string.ok),
-            View.OnClickListener {
-                moveToUsersCurrentLocation()
-            })
     }
 }

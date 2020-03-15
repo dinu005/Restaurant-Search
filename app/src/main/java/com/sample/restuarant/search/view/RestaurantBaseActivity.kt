@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.View
@@ -21,14 +20,13 @@ import javax.inject.Inject
 abstract class RestaurantBaseActivity : DaggerAppCompatActivity() {
 
     private val tag = "RestaurantBaseActivity"
-    private val requestLocationPermission = 100
+
+    companion object {
+        const val REQUEST_LOCATION_PERMISSION = 100
+    }
 
     @Inject
     lateinit var permissionUtils: PermissionUtils
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onResume() {
         super.onResume()
@@ -48,11 +46,11 @@ abstract class RestaurantBaseActivity : DaggerAppCompatActivity() {
                 getString(R.string.permission_msg),
                 getString(R.string.allow),
                 View.OnClickListener {
-                    permissionUtils.showLocationPermissionDialog(this, requestLocationPermission)
+                    permissionUtils.showLocationPermissionDialog(this, REQUEST_LOCATION_PERMISSION)
                 })
         } else {
             Log.i(tag, "Requesting permission")
-            permissionUtils.showLocationPermissionDialog(this, requestLocationPermission)
+            permissionUtils.showLocationPermissionDialog(this, REQUEST_LOCATION_PERMISSION)
         }
     }
 
@@ -71,7 +69,7 @@ abstract class RestaurantBaseActivity : DaggerAppCompatActivity() {
         grantResults: IntArray
     ) {
         when (requestCode) {
-            requestLocationPermission -> {
+            REQUEST_LOCATION_PERMISSION -> {
                 if (grantResults.isNotEmpty() && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     showSnackbar(
                         getString(R.string.permission_denied_msg),
@@ -80,7 +78,7 @@ abstract class RestaurantBaseActivity : DaggerAppCompatActivity() {
                             val intent = Intent()
                             intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                             val uri = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                            intent.setData(uri)
+                            intent.data = uri
                             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                             startActivity(intent)
                         })
