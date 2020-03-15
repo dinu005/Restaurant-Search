@@ -21,7 +21,7 @@ This application uses MVVM architecture using Android architecure components lik
 The application uses Foursquare api to show nearby restaurants on Google Map.
 The key for Foursquare Api and Google maps are defined in gradle.properties
 
-You need to add below keys to the gradle.properties
+You need to add below keys to the [gradle.properties](/gradle.properties)
 - client_id
 - client_secret
 - google_maps_key
