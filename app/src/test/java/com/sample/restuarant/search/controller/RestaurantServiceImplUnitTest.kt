@@ -18,6 +18,10 @@ import org.mockito.MockitoAnnotations
 
 class RestaurantServiceImplUnitTest {
 
+    private val latitude: Double = 1.00
+    private val longitude: Double = 1.00
+    private val radius = 250
+
     @Mock
     lateinit var restaurantApi: RestaurantApi
 
@@ -36,14 +40,12 @@ class RestaurantServiceImplUnitTest {
         Mockito.`when`(
             restaurantApi.syncNearByRestaurants(
                 anyString(),
-                anyInt(),
-                anyString(),
-                anyString()
+                anyInt()
             )
         ).thenReturn(apiResponseSingle)
 
         val testObserver = TestObserver.create<List<RestaurantModel>>()
-        restaurantService.getNearByRestaurants()
+        restaurantService.getNearByRestaurants(latitude, longitude, radius)
             .subscribe(testObserver)
 
         testObserver.assertNoErrors()
@@ -60,14 +62,12 @@ class RestaurantServiceImplUnitTest {
         Mockito.`when`(
             restaurantApi.syncNearByRestaurants(
                 anyString(),
-                anyInt(),
-                anyString(),
-                anyString()
+                anyInt()
             )
         ).thenReturn(apiResponseSingle)
 
         val testObserver = TestObserver.create<List<RestaurantModel>>()
-        restaurantService.getNearByRestaurants()
+        restaurantService.getNearByRestaurants(latitude, longitude, radius)
             .subscribe(testObserver)
 
         testObserver.assertNoErrors()
@@ -84,14 +84,12 @@ class RestaurantServiceImplUnitTest {
         Mockito.`when`(
             restaurantApi.syncNearByRestaurants(
                 anyString(),
-                anyInt(),
-                anyString(),
-                anyString()
+                anyInt()
             )
         ).thenReturn(apiResponseSingle)
 
         val testObserver = TestObserver.create<List<RestaurantModel>>()
-        restaurantService.getNearByRestaurants()
+        restaurantService.getNearByRestaurants(latitude, longitude, radius)
             .subscribe(testObserver)
 
         testObserver.assertNoErrors()
@@ -108,14 +106,12 @@ class RestaurantServiceImplUnitTest {
         Mockito.`when`(
             restaurantApi.syncNearByRestaurants(
                 anyString(),
-                anyInt(),
-                anyString(),
-                anyString()
+                anyInt()
             )
         ).thenReturn(apiResponseSingle)
 
         val testObserver = TestObserver.create<List<RestaurantModel>>()
-        restaurantService.getNearByRestaurants()
+        restaurantService.getNearByRestaurants(latitude, longitude, radius)
             .subscribe(testObserver)
 
         testObserver.assertNoErrors()
@@ -131,14 +127,12 @@ class RestaurantServiceImplUnitTest {
         Mockito.`when`(
             restaurantApi.syncNearByRestaurants(
                 anyString(),
-                anyInt(),
-                anyString(),
-                anyString()
+                anyInt()
             )
         ).thenReturn(apiResponseSingle)
 
         val testObserver = TestObserver.create<List<RestaurantModel>>()
-        restaurantService.getNearByRestaurants()
+        restaurantService.getNearByRestaurants(latitude, longitude, radius)
             .subscribe(testObserver)
 
         testObserver.assertNoErrors()

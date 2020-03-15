@@ -23,8 +23,7 @@ class RestaurantServiceImpl(private val restaurantApi: RestaurantApi) : Restaura
         radius: Int
     ): Single<List<RestaurantModel>> {
         return restaurantApi.syncNearByRestaurants(
-            "$latitude,$longitude", radius,
-            "browse", "20200301"
+            "$latitude,$longitude", radius
         )
             .flatMap { restaurantList -> transformResult(restaurantList.response.venue) }
             .doOnError { error -> Log.e(tag, "error while fetching nearby restaurants", error) }
