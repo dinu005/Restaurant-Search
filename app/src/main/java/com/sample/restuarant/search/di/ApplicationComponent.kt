@@ -12,6 +12,7 @@ import dagger.android.DaggerApplication
 /* @author Dinesh Kumar 
    @creation_date 3/8/2020*/
 
+
 @Component(
     modules = [AndroidInjectionModule::class, AppModule::class, NetworkModule::class,
         ActivityModule::class, ViewModelModule::class, UtilityModule::class]
